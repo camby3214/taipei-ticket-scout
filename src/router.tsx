@@ -1,18 +1,25 @@
-import { QueryClient } from "@tanstack/react-query";
-import { createRouter } from "@tanstack/react-router";
-import { routeTree } from "./routeTree.gen";
+import { Navigate, createBrowserRouter, type RouteObject } from "react-router";
 
-export const getRouter = () => {
-  // One client per request: a module-level QueryClient leaks cached data between SSR requests.
-  const queryClient = new QueryClient();
+import { RootLayout, RouteError } from "@/pages/RootLayout";
+import { Landing } from "@/pages/Landing";
+import { AppShell } from "@/pages/AppShell";
+import { AuthPage } from "@/pages/AuthPage";
+import { NotFound } from "@/pages/NotFound";
 
-  const router = createRouter({
-    routeTree,
-    context: { queryClient },
-    scrollRestoration: true,
-    // Lets Query own freshness; set caching defaults on the QueryClient, not the router.
-    defaultPreloadStaleTime: 0,
-  });
+export const routes: RouteObject[] = [
+  {
+    element: <RootLayout />,
+    errorElement: <RouteError />,
+    children: [
+      { path: "/", element: <Landing /> },
+      { path: "/app", element: <AppShell /> },
+      { path: "/sign-in", element: <AuthPage mode="signin" /> },
+      { path: "/sign-up", element: <AuthPage mode="signup" /> },
+      // Old combined auth URL — keep existing links working.
+      { path: "/auth", element: <Navigate to="/sign-in" replace /> },
+      { path: "*", element: <NotFound /> },
+    ],
+  },
+];
 
-  return router;
-};
+export const router = createBrowserRouter(routes);

@@ -1,17 +1,53 @@
-import { QueryClient } from "@tanstack/react-query";
-import { createRouter, rootRouteId } from "@tanstack/react-router";
-import { describe, expect, it } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { RouterProvider, createMemoryRouter, matchRoutes } from "react-router";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { routeTree } from "@/routeTree.gen";
+// Keep tests offline: a signed-out Supabase auth client.
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: {
+    auth: {
+      getSession: () => Promise.resolve({ data: { session: null } }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      signInWithPassword: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    },
+  },
+}));
 
-// Match routes without running loaders or rendering: loaders may need a server or
-// network the test run lacks, and jsdom never loads the stylesheets React waits on.
+import { routes } from "@/router";
+
+const renderAt = (path: string) =>
+  render(<RouterProvider router={createMemoryRouter(routes, { initialEntries: [path] })} />);
+
 describe("App routing", () => {
-  it("matches a page for / instead of falling back to not found", () => {
-    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+  beforeEach(() => window.localStorage.clear());
 
-    const matches = router.matchRoutes("/");
+  it.each(["/", "/app", "/sign-in", "/sign-up"])(
+    "matches a page for %s instead of the 404",
+    (path) => {
+      const leaf = matchRoutes(routes, path)?.at(-1);
+      expect(leaf?.route.path).toBe(path);
+    },
+  );
 
-    expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
+  it("renders the 404 page for unknown paths", () => {
+    renderAt("/nope");
+    expect(screen.getByText("Page not found")).toBeInTheDocument();
+  });
+
+  it("renders sign-in and sign-up modes", () => {
+    renderAt("/sign-up");
+    expect(screen.getByRole("heading", { name: "建立帳號" })).toBeInTheDocument();
+  });
+
+  it("redirects /app to /sign-in when signed out", async () => {
+    renderAt("/app");
+    expect(await screen.findByRole("heading", { name: "歡迎回來" })).toBeInTheDocument();
+  });
+
+  it("redirects the old /auth URL to /sign-in", async () => {
+    renderAt("/auth");
+    expect(await screen.findByRole("heading", { name: "歡迎回來" })).toBeInTheDocument();
   });
 });
