@@ -1,40 +1,37 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandMark } from "@/components/BrandMark";
-import { useDemoAuth } from "@/lib/useDemoAuth";
+import { useAuth } from "@/lib/useAuth";
+import { usePageMeta } from "@/lib/usePageMeta";
 
-export const Route = createFileRoute("/auth")({
-  head: () => ({
-    meta: [
-      { title: "登入 · 機票降價通知" },
-      { name: "description", content: "登入或註冊機票降價通知，開始追蹤台北出發的票價。" },
-      { property: "og:title", content: "登入 · 機票降價通知" },
-      { property: "og:description", content: "登入後即可建立機票降價提醒。" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
-  component: AuthPage,
-});
-
-function AuthPage() {
-  const { session, ready, signIn } = useDemoAuth();
+export function AuthPage({ mode }: { mode: "signin" | "signup" }) {
+  usePageMeta(
+    mode === "signin" ? "登入 · 機票降價通知" : "註冊 · 機票降價通知",
+    "登入或註冊機票降價通知，開始追蹤台北出發的票價。",
+  );
+  const { session, ready, signIn, signUp } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [pending, setPending] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (ready && session) navigate({ to: "/app", replace: true });
+    if (ready && session) navigate("/app", { replace: true });
   }, [ready, session, navigate]);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || password.length < 6) return;
-    signIn(email);
+    if (!email || password.length < 6 || pending) return;
+    setPending(true);
+    setMessage(null);
+    const result = mode === "signin" ? await signIn(email, password) : await signUp(email, password);
+    setPending(false);
+    if (result.error) setMessage(result.error);
+    else if (result.needsConfirmation) setMessage("註冊成功！請到信箱點擊確認連結後再登入。");
   };
 
   return (
@@ -72,19 +69,21 @@ function AuthPage() {
             <Label htmlFor="password">密碼</Label>
             <Input id="password" type="password" required minLength={6} placeholder="至少 6 個字元" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
-          <Button type="submit" className="w-full" size="lg">
+          <Button type="submit" className="w-full" size="lg" disabled={pending}>
             {mode === "signin" ? "登入" : "註冊"}
           </Button>
           <button
             type="button"
-            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+            onClick={() => navigate(mode === "signin" ? "/sign-up" : "/sign-in")}
             className="w-full text-center text-sm text-muted-foreground hover:text-foreground"
           >
             {mode === "signin" ? "還沒有帳號？註冊" : "已經有帳號？登入"}
           </button>
-          <p className="rounded-md bg-secondary p-3 text-xs text-muted-foreground">
-            預覽模式：目前登入只存在這個瀏覽器，正式登入系統稍後接上。
-          </p>
+          {message && (
+            <p role="status" className="rounded-md bg-secondary p-3 text-xs text-muted-foreground">
+              {message}
+            </p>
+          )}
         </form>
       </div>
     </div>

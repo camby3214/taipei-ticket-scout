@@ -22,3 +22,29 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Environment variables
+
+Auth runs on this project's own Supabase. Both values are in `.env` (the publishable key is
+browser-safe and protected by RLS):
+
+| Variable | Value |
+| --- | --- |
+| `VITE_SUPABASE_URL` | `https://jumpyfgaozzxzgjfyced.supabase.co` |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase → Project Settings → API Keys → publishable key |
+
+**Vercel:** add the same two variables under Project → Settings → Environment Variables
+(Production, Preview and Development), then redeploy — Vite inlines them at build time.
+
+## Build & deploy
+
+This is a static Vite + React single-page app (React Router for client-side routing; no SSR).
+
+```sh
+npm run build   # outputs a static SPA to dist/
+npm run preview # serve dist/ locally
+```
+
+Deploy `dist/` to any static host. On Vercel, `vercel.json` sets the Vite preset and rewrites
+every path to `index.html`, so deep links such as `/app`, `/sign-in` and `/sign-up` resolve
+client-side.

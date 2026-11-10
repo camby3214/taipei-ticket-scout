@@ -1,26 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "react-router";
 import { Bell, Mail, Radar, Target, Wallet, CalendarOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandMark } from "@/components/BrandMark";
 import { FareTicket } from "@/components/FareTicket";
 import { POPULAR_ROUTES, formatTWD } from "@/lib/flightData";
-
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "機票降價通知 Flight Price Notifier — 台北出發，低於預算就寄信給你" },
-      {
-        name: "description",
-        content: "設定目的地與預算，我們幫你盯台北出發熱門航線，最低票價跌到目標價就 Email 通知你。",
-      },
-      { property: "og:title", content: "機票降價通知 Flight Price Notifier" },
-      { property: "og:description", content: "不在乎哪天飛，只要票價在預算內。降價自動寄信通知。" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: Landing,
-});
+import { usePageMeta } from "@/lib/usePageMeta";
 
 const STEPS = [
   { icon: Target, title: "選目的地", body: "從台北出發的熱門航線中挑一個，東京、首爾、曼谷都有。" },
@@ -29,7 +13,12 @@ const STEPS = [
   { icon: Mail, title: "降價寄信", body: "最低價一跌到目標價以下，立刻 Email 通知你去訂票。" },
 ];
 
-function Landing() {
+export function Landing() {
+  usePageMeta(
+    "機票降價通知 Flight Price Notifier — 台北出發，低於預算就寄信給你",
+    "設定目的地與預算，我們幫你盯台北出發熱門航線，最低票價跌到目標價就 Email 通知你。",
+  );
+
   return (
     <div className="min-h-screen">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
@@ -42,10 +31,10 @@ function Landing() {
             熱門航線
           </a>
           <Button asChild variant="ghost" size="sm">
-            <Link to="/auth">登入</Link>
+            <Link to="/sign-in">登入</Link>
           </Button>
           <Button asChild size="sm">
-            <Link to="/auth">免費開始</Link>
+            <Link to="/sign-up">免費開始</Link>
           </Button>
         </nav>
       </header>
@@ -65,7 +54,7 @@ function Landing() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg">
-              <Link to="/auth">
+              <Link to="/sign-up">
                 <Bell /> 建立第一個降價提醒
               </Link>
             </Button>
@@ -134,7 +123,7 @@ function Landing() {
             <p className="mt-2 text-muted-foreground">一分鐘建立提醒，降價時第一個知道。</p>
           </div>
           <Button asChild size="lg">
-            <Link to="/auth">免費註冊</Link>
+            <Link to="/sign-up">免費註冊</Link>
           </Button>
         </div>
       </section>

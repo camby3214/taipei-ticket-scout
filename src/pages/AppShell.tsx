@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { Bell, LogOut, Plus, Trash2, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,31 +7,18 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BrandMark } from "@/components/BrandMark";
 import { FareTicket } from "@/components/FareTicket";
-import { useDemoAuth } from "@/lib/useDemoAuth";
+import { useAuth } from "@/lib/useAuth";
+import { usePageMeta } from "@/lib/usePageMeta";
 import { POPULAR_ROUTES, routeByCode, formatTWD, type Watch } from "@/lib/flightData";
-
-export const Route = createFileRoute("/app")({
-  ssr: false,
-  head: () => ({
-    meta: [
-      { title: "我的降價提醒 · 機票降價通知" },
-      { name: "description", content: "管理你追蹤中的台北出發航線與目標票價。" },
-      { property: "og:title", content: "我的降價提醒 · 機票降價通知" },
-      { property: "og:description", content: "管理追蹤中的航線與目標價。" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
-  component: AppShell,
-});
 
 const SAMPLE: Watch[] = [
   { id: "1", dest: "NRT", target: 7000, current: 6480, createdAt: "2026-11-01" },
   { id: "2", dest: "ICN", target: 5500, current: 6120, createdAt: "2026-11-05" },
 ];
 
-function AppShell() {
-  const { session, ready, signOut } = useDemoAuth();
+export function AppShell() {
+  usePageMeta("我的降價提醒 · 機票降價通知", "管理你追蹤中的台北出發航線與目標票價。");
+  const { session, ready, signOut } = useAuth();
   const navigate = useNavigate();
   // Local-only list for the preview; will be replaced by the AWS subscriptions API.
   const [watches, setWatches] = useState<Watch[]>(SAMPLE);
@@ -39,7 +26,7 @@ function AppShell() {
   const [target, setTarget] = useState("6000");
 
   useEffect(() => {
-    if (ready && !session) navigate({ to: "/auth", replace: true });
+    if (ready && !session) navigate("/sign-in", { replace: true });
   }, [ready, session, navigate]);
 
   if (!ready || !session) return null;
@@ -55,9 +42,9 @@ function AppShell() {
     ]);
   };
 
-  const handleSignOut = () => {
-    signOut();
-    navigate({ to: "/auth", replace: true });
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/sign-in", { replace: true });
   };
 
   return (

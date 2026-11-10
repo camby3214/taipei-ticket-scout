@@ -31,6 +31,6 @@ use the editor.
 
 ## Project rules
 - Supabase (when connected) is for authentication only; no custom tables, RPCs or `supabase.from()` queries — app data lives in AWS (DynamoDB via Lambda/API Gateway). Why: single source of truth.
-- Auth is a temporary localStorage demo session (`src/lib/useDemoAuth.ts`) until the auth backend is connected in a later step; don't connect a backend on initial generation.
+- Auth uses the project's own Supabase project. The single client is `src/integrations/supabase/client.ts`, configured from `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`; the session hook is `src/lib/useAuth.ts`.
 - React component files use PascalCase.tsx. Why: consistent lookup.
 - Never commit real emails/names in demo data; use example.com placeholders.
