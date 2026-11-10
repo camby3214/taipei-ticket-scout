@@ -28,3 +28,9 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- Supabase (when connected) is for authentication only; no custom tables, RPCs or `supabase.from()` queries — app data lives in AWS (DynamoDB via Lambda/API Gateway). Why: single source of truth.
+- Auth is a temporary localStorage demo session (`src/lib/useDemoAuth.ts`) until the auth backend is connected in a later step; don't connect a backend on initial generation.
+- React component files use PascalCase.tsx. Why: consistent lookup.
+- Never commit real emails/names in demo data; use example.com placeholders.
